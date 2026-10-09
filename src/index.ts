@@ -71,7 +71,10 @@ export function devSourceMap(): Plugin {
                     changed = true;
                     return `vite-source:///${url.pathname.slice(server.config.base.length)}`;
                   }
-                  return url.href;
+                  // Keep non-target sources on the browser's real origin after removing sourceRoot.
+                  return url.origin === moduleUrl.origin
+                    ? `${url.pathname}${url.search}${url.hash}`
+                    : url.href;
                 });
                 if (!changed) return match;
                 map.sources = sources;

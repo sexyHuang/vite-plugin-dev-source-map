@@ -114,3 +114,60 @@ it("is excluded from production builds", async () => {
   );
   expect(config.plugins.some((plugin) => plugin.name === "vite-plugin-dev-source-map")).toBe(false);
 });
+
+it.each([
+  { sourceRoot: undefined, other: "../../shared/helper.ts", expected: "/shared/helper.ts" },
+  { sourceRoot: "/demo/src/", other: "../../shared/helper.ts", expected: "/shared/helper.ts" },
+  {
+    sourceRoot: undefined,
+    other: "https://cdn.example.com/helper.ts",
+    expected: "https://cdn.example.com/helper.ts",
+  },
+])(
+  "preserves non-target source identity in mixed maps ($other, $sourceRoot)",
+  async ({ sourceRoot, other, expected }) => {
+    const root = await mkdtemp(resolve(tmpdir(), "vite-mixed-map-test-"));
+    const map = {
+      version: 3,
+      names: [],
+      mappings: "AAAA",
+      sources: ["App.tsx", other],
+      sourcesContent: ["export const app = 1;", null],
+      ...(sourceRoot ? { sourceRoot } : {}),
+    };
+    const body = `export const app = 1;\n//# sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(map)).toString("base64")}`;
+    const server = await createServer({
+      configFile: false,
+      root,
+      base: "/demo/",
+      cacheDir: resolve(root, ".vite"),
+      optimizeDeps: { noDiscovery: true, include: [] },
+      server: { host: "127.0.0.1", port: 0, hmr: false, watch: null },
+      plugins: [
+        devSourceMap(),
+        {
+          name: "mixed-map-fixture",
+          configureServer(server) {
+            server.middlewares.use((req, res, next) => {
+              if (req.url !== "/demo/src/App.tsx") return next();
+              res.setHeader("Content-Type", "text/javascript");
+              res.end(body);
+            });
+          },
+        },
+      ],
+    });
+    try {
+      await server.listen();
+      const url = `${server.resolvedUrls!.local[0]}src/App.tsx`;
+      const result = readMap(await (await fetch(url)).text());
+      expect(result.map.sources).toEqual(["vite-source:///src/App.tsx", expected]);
+      expect(result.map.sourcesContent).toEqual(map.sourcesContent);
+      expect(result.map.mappings).toBe(map.mappings);
+      expect(result.map.sourceRoot).toBeUndefined();
+    } finally {
+      await server.close();
+      await rm(root, { recursive: true, force: true });
+    }
+  },
+);
