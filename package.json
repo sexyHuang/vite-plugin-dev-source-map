@@ -1,0 +1,66 @@
+{
+  "name": "vite-plugin-dev-source-map",
+  "version": "0.1.0",
+  "description": "Give original source files distinct URLs in Vite dev sourcemaps for reliable DevTools navigation.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "peerDependencies": {
+    "vite": "^8.0.0"
+  },
+  "devDependencies": {
+    "@jridgewell/trace-mapping": "^0.3.31",
+    "@types/node": "^22.0.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.0",
+    "vitest": "^4.1.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && vitest run",
+    "dev": "npm run build && vite examples/react",
+    "prepack": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sexyHuang/vite-plugin-dev-source-map.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sexyHuang/vite-plugin-dev-source-map/issues"
+  },
+  "homepage": "https://github.com/sexyHuang/vite-plugin-dev-source-map#readme",
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "sourcemap",
+    "source-map",
+    "devtools",
+    "react-devtools"
+  ],
+  "author": "Sexy (sexyHuang)",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
